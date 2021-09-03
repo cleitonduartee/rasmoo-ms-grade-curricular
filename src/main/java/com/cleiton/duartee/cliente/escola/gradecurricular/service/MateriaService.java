@@ -1,11 +1,14 @@
 package com.cleiton.duartee.cliente.escola.gradecurricular.service;
 
 import com.cleiton.duartee.cliente.escola.gradecurricular.entity.MateriaEntity;
+import com.cleiton.duartee.cliente.escola.gradecurricular.exception.MateriaException;
 import com.cleiton.duartee.cliente.escola.gradecurricular.repository.MateriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MateriaService implements IMateriaService{
@@ -15,52 +18,57 @@ public class MateriaService implements IMateriaService{
 
     @Override
     public Boolean atualizar(MateriaEntity materia) {
-       try{
-        MateriaEntity materiaEntityAtualizada = this.materiaRepository.findById(materia.getId()).get();
+        try{
+            MateriaEntity materiaEntityAtualizada = this.buscarPorId(materia.getId());
+            materiaEntityAtualizada.setHoras(materia.getHoras());
+            materiaEntityAtualizada.setCodigo(materia.getCodigo());
+            materiaEntityAtualizada.setFrequencia(materia.getFrequencia());
+            materiaEntityAtualizada.setNome(materia.getNome());
 
-        materiaEntityAtualizada.setHoras(materia.getHoras());
-        materiaEntityAtualizada.setCodigo(materia.getCodigo());
-        materiaEntityAtualizada.setFrequencia(materia.getFrequencia());
-        materiaEntityAtualizada.setNome(materia.getNome());
-
-        this.materiaRepository.save(materiaEntityAtualizada);
-
-        return true;
-
-       }catch (Exception e){
-           return false;
-       }
+            this.materiaRepository.save(materiaEntityAtualizada);
+            return true;
+        }catch (MateriaException m){
+            throw m;
+        }catch (Exception e){
+            throw e;
+        }
     }
 
     @Override
     public Boolean excluir(Long id) {
         try{
+            this.buscarPorId(id);
             this.materiaRepository.deleteById(id);
             return true;
+        }catch (MateriaException m){
+            throw m;
         }catch (Exception e){
-            return false;
+            throw e;
         }
 
     }
 
     @Override
     public Boolean cadastrar(MateriaEntity materia) {
-       try{
-           this.materiaRepository.save(materia);
-           return true;
-       }catch (Exception e){
-           return false;
-       }
+        try{
+            this.materiaRepository.save(materia);
+            return true;
+        }catch (Exception e){
+            throw new MateriaException("Erro interno identificado. Contate o suporte", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
     public MateriaEntity buscarPorId(Long id) {
-       try{
-           return this.materiaRepository.findById(id).get();
-       }catch (Exception e){
-           return null;
-       }
-
+        try{
+            Optional<MateriaEntity> materiaEntityOptional = this.materiaRepository.findById(id);
+            return materiaEntityOptional.orElseThrow(
+                    ()-> new MateriaException("Materia não encontrada.", HttpStatus.NOT_FOUND));
+        }catch (MateriaException m){
+            throw m;
+        }catch (Exception e){
+            throw new MateriaException("Erro interno identificado. Contate o suporte", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
@@ -68,7 +76,7 @@ public class MateriaService implements IMateriaService{
         try{
             return this.materiaRepository.findAll();
         }catch (Exception e){
-            return null;
+            throw new MateriaException("Erro interno identificado. Contate o suporte", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

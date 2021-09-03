@@ -23,17 +23,13 @@ public class MateriaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<MateriaEntity> buscarPorId(@PathVariable long id){
-       MateriaEntity materiaEntity = this.iMateriaService.buscarPorId(id);
-       if(materiaEntity == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-
-       return ResponseEntity.status(HttpStatus.OK).body(materiaEntity);
+        return ResponseEntity.status(HttpStatus.OK).body(this.iMateriaService.buscarPorId(id));
     }
 
     @PostMapping
     public ResponseEntity<Boolean> cadastrar(@RequestBody MateriaEntity materia){
         try {
-         this.iMateriaService.cadastrar(materia);
-         return ResponseEntity.status(HttpStatus.OK).body(true);
+            return ResponseEntity.status(HttpStatus.CREATED).body(iMateriaService.cadastrar(materia));
         }catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
@@ -47,7 +43,7 @@ public class MateriaController {
     }
 
     @PutMapping()
-    public ResponseEntity<Boolean> upDate (@RequestBody MateriaEntity materia){
+    public ResponseEntity<Boolean> atualizar (@RequestBody MateriaEntity materia){
         if(this.iMateriaService.atualizar(materia).equals(true)) return ResponseEntity.status(HttpStatus.NO_CONTENT).body(true);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
     }
