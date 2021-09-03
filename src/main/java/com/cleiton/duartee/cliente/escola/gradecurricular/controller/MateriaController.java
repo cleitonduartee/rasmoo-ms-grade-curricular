@@ -1,80 +1,54 @@
 package com.cleiton.duartee.cliente.escola.gradecurricular.controller;
 
 import com.cleiton.duartee.cliente.escola.gradecurricular.entity.MateriaEntity;
-import com.cleiton.duartee.cliente.escola.gradecurricular.repository.IMateriaRepository;
+import com.cleiton.duartee.cliente.escola.gradecurricular.service.IMateriaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/materia")
 public class MateriaController {
 
     @Autowired
-    private IMateriaRepository iMateriaRepository;
+    private IMateriaService iMateriaService;
 
     @GetMapping
-    public ResponseEntity<List<MateriaEntity>> findAll(){
-        return ResponseEntity.status(HttpStatus.OK).body(iMateriaRepository.findAll());
+    public ResponseEntity<List<MateriaEntity>> buscarTodos(){
+        return ResponseEntity.status(HttpStatus.OK).body(this.iMateriaService.buscarTodos());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MateriaEntity> findById(@PathVariable long id){
-        MateriaEntity materia = searchById(id);
-        if(materia != null) return ResponseEntity.status(HttpStatus.OK).body(materia);
+    public ResponseEntity<MateriaEntity> buscarPorId(@PathVariable long id){
+       MateriaEntity materiaEntity = this.iMateriaService.buscarPorId(id);
+       if(materiaEntity == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(materia);
+       return ResponseEntity.status(HttpStatus.OK).body(materiaEntity);
     }
 
     @PostMapping
-    public ResponseEntity<MateriaEntity> cadastrar(@RequestBody MateriaEntity materia){
+    public ResponseEntity<Boolean> cadastrar(@RequestBody MateriaEntity materia){
         try {
-           iMateriaRepository.save(materia);
-            return ResponseEntity.status(HttpStatus.OK).body( iMateriaRepository.save(materia));
-
+         this.iMateriaService.cadastrar(materia);
+         return ResponseEntity.status(HttpStatus.OK).body(true);
         }catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.OK).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar (@PathVariable Long id){
-        try {
-            MateriaEntity materia = searchById(id);
-            if(materia != null){
-                iMateriaRepository.delete(materia);
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }catch (Exception e){
-            e.printStackTrace();
-            return null;
-        }
+    public ResponseEntity<Boolean> deletar (@PathVariable Long id){
+        if(this.iMateriaService.excluir(id).equals(true)) return ResponseEntity.status(HttpStatus.NO_CONTENT).body(true);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
     }
 
     @PutMapping()
-    public ResponseEntity<MateriaEntity> upDate (@RequestBody MateriaEntity materia){
-        MateriaEntity materiaEntity = searchById(materia.getId());
-        upData(materiaEntity, materia);
-        return ResponseEntity.status(200).body(iMateriaRepository.save(materia));
-    }
-    private void upData (MateriaEntity materiaEntity, MateriaEntity materia){
-
-        materiaEntity.setNome(materia.getNome());
-        materiaEntity.setCodigo(materia.getCodigo());
-        materiaEntity.setFrequencia(materia.getFrequencia());
-        materiaEntity.setHoras(materia.getHoras());
-
-    }
-    private MateriaEntity searchById(Long id){
-        Optional<MateriaEntity>opMateria = iMateriaRepository.findById(id);
-        if(opMateria.isPresent()) return opMateria.get();
-
-        return null;
+    public ResponseEntity<Boolean> upDate (@RequestBody MateriaEntity materia){
+        if(this.iMateriaService.atualizar(materia).equals(true)) return ResponseEntity.status(HttpStatus.NO_CONTENT).body(true);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
     }
 }
