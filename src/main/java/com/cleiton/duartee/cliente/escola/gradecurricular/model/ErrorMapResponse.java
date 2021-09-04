@@ -3,10 +3,12 @@ package com.cleiton.duartee.cliente.escola.gradecurricular.model;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
-@SuperBuilder
+import java.util.Map;
+
+
 @Getter
-public class ErrorResponse {
-    private String mensagem;
-    private int httpStatus;
-    private Long timeStamp;
+@SuperBuilder
+public class ErrorMapResponse extends ErrorResponse {
+
+   private Map<String, String> erros;
 }

@@ -3,7 +3,7 @@ package com.cleiton.duartee.cliente.escola.gradecurricular.service;
 import com.cleiton.duartee.cliente.escola.gradecurricular.dto.MateriaDTO;
 import com.cleiton.duartee.cliente.escola.gradecurricular.entity.MateriaEntity;
 import com.cleiton.duartee.cliente.escola.gradecurricular.exception.MateriaException;
-import com.cleiton.duartee.cliente.escola.gradecurricular.repository.MateriaRepository;
+import com.cleiton.duartee.cliente.escola.gradecurricular.repository.IMateriaRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,10 +15,17 @@ import java.util.Optional;
 @Service
 public class MateriaService implements IMateriaService{
 
-    @Autowired
-    private MateriaRepository materiaRepository;
+    private static final String MENSAGEM_ERRO = "Erro interno identificado. Contate o suporte";
+    private static final String MATERIA_NAO_ENCONTRADA = "Materia não encontrada.";
+    private IMateriaRepository materiaRepository;
+    private ModelMapper mapper;
 
-    static final ModelMapper mapper = new ModelMapper();
+
+    @Autowired
+    public MateriaService(IMateriaRepository iMateriaRepository){
+        this.materiaRepository = iMateriaRepository;
+        this.mapper = new ModelMapper();
+    }
 
     @Override
     public Boolean atualizar(MateriaDTO materiaDTO) {
@@ -55,7 +62,7 @@ public class MateriaService implements IMateriaService{
             this.materiaRepository.save(materiaEntity);
             return true;
         }catch (Exception e){
-            throw new MateriaException("Erro interno identificado. Contate o suporte", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new MateriaException(MENSAGEM_ERRO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -65,11 +72,11 @@ public class MateriaService implements IMateriaService{
             if(id == null ) throw new MateriaException("Informe o ID da matéria.", HttpStatus.NOT_FOUND);
             Optional<MateriaEntity> materiaEntityOptional = this.materiaRepository.findById(id);
             return materiaEntityOptional.orElseThrow(
-                    ()-> new MateriaException("Materia não encontrada.", HttpStatus.NOT_FOUND));
+                    ()-> new MateriaException(MATERIA_NAO_ENCONTRADA, HttpStatus.NOT_FOUND));
         }catch (MateriaException m){
             throw m;
         }catch (Exception e){
-            throw new MateriaException("Erro interno identificado. Contate o suporte", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new MateriaException(MENSAGEM_ERRO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -78,7 +85,7 @@ public class MateriaService implements IMateriaService{
         try{
             return this.materiaRepository.findAll();
         }catch (Exception e){
-            throw new MateriaException("Erro interno identificado. Contate o suporte", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new MateriaException(MENSAGEM_ERRO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
