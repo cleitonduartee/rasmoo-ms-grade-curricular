@@ -1,8 +1,10 @@
 package com.cleiton.duartee.cliente.escola.gradecurricular.service;
 
+import com.cleiton.duartee.cliente.escola.gradecurricular.dto.MateriaDTO;
 import com.cleiton.duartee.cliente.escola.gradecurricular.entity.MateriaEntity;
 import com.cleiton.duartee.cliente.escola.gradecurricular.exception.MateriaException;
 import com.cleiton.duartee.cliente.escola.gradecurricular.repository.MateriaRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,15 +18,13 @@ public class MateriaService implements IMateriaService{
     @Autowired
     private MateriaRepository materiaRepository;
 
-    @Override
-    public Boolean atualizar(MateriaEntity materia) {
-        try{
-            MateriaEntity materiaEntityAtualizada = this.buscarPorId(materia.getId());
-            materiaEntityAtualizada.setHoras(materia.getHoras());
-            materiaEntityAtualizada.setCodigo(materia.getCodigo());
-            materiaEntityAtualizada.setFrequencia(materia.getFrequencia());
-            materiaEntityAtualizada.setNome(materia.getNome());
+    static final ModelMapper mapper = new ModelMapper();
 
+    @Override
+    public Boolean atualizar(MateriaDTO materiaDTO) {
+        try{
+            this.buscarPorId(materiaDTO.getId());
+            MateriaEntity materiaEntityAtualizada = mapper.map(materiaDTO, MateriaEntity.class);
             this.materiaRepository.save(materiaEntityAtualizada);
             return true;
         }catch (MateriaException m){
@@ -49,9 +49,10 @@ public class MateriaService implements IMateriaService{
     }
 
     @Override
-    public Boolean cadastrar(MateriaEntity materia) {
+    public Boolean cadastrar(MateriaDTO materiaDTO) {
         try{
-            this.materiaRepository.save(materia);
+            MateriaEntity materiaEntity = mapper.map(materiaDTO,MateriaEntity.class);
+            this.materiaRepository.save(materiaEntity);
             return true;
         }catch (Exception e){
             throw new MateriaException("Erro interno identificado. Contate o suporte", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -61,6 +62,7 @@ public class MateriaService implements IMateriaService{
     @Override
     public MateriaEntity buscarPorId(Long id) {
         try{
+            if(id == null ) throw new MateriaException("Informe o ID da matéria.", HttpStatus.NOT_FOUND);
             Optional<MateriaEntity> materiaEntityOptional = this.materiaRepository.findById(id);
             return materiaEntityOptional.orElseThrow(
                     ()-> new MateriaException("Materia não encontrada.", HttpStatus.NOT_FOUND));
