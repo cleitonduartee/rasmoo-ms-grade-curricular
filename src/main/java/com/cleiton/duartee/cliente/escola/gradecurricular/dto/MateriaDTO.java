@@ -2,6 +2,7 @@ package com.cleiton.duartee.cliente.escola.gradecurricular.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -9,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 
 @Data
 @NoArgsConstructor
-public class MateriaDTO {
+public class MateriaDTO extends RepresentationModel {
 
     private Long id;
 

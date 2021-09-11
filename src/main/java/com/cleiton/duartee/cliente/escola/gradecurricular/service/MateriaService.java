@@ -1,18 +1,22 @@
 package com.cleiton.duartee.cliente.escola.gradecurricular.service;
 
+import com.cleiton.duartee.cliente.escola.gradecurricular.controller.MateriaController;
 import com.cleiton.duartee.cliente.escola.gradecurricular.dto.MateriaDTO;
 import com.cleiton.duartee.cliente.escola.gradecurricular.entity.MateriaEntity;
 import com.cleiton.duartee.cliente.escola.gradecurricular.exception.MateriaException;
 import com.cleiton.duartee.cliente.escola.gradecurricular.repository.IMateriaRepository;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,9 +91,13 @@ public class MateriaService implements IMateriaService{
     }
     @CachePut(unless = "#result.size()<3")
     @Override
-    public List<MateriaEntity> buscarTodos() {
+    public List<MateriaDTO> buscarTodos() {
         try{
-            return this.materiaRepository.findAll();
+            List<MateriaDTO> listMateria = mapper.map(this.materiaRepository.findAll(), new TypeToken<List<MateriaDTO>>(){}.getType());
+            listMateria.forEach(mat -> {
+                mat.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).buscarPorId(mat.getId())).withSelfRel());
+            });
+            return listMateria;
         }catch (Exception e){
             throw new MateriaException(MENSAGEM_ERRO, HttpStatus.INTERNAL_SERVER_ERROR);
         }

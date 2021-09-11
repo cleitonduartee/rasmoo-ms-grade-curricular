@@ -10,5 +10,5 @@ public interface IMateriaService {
     public Boolean excluir (final Long id);
     public Boolean cadastrar (final MateriaDTO materiaDTO);
     public MateriaEntity buscarPorId (final Long id);
-    public List<MateriaEntity> buscarTodos ();
+    public List<MateriaDTO> buscarTodos ();
 }

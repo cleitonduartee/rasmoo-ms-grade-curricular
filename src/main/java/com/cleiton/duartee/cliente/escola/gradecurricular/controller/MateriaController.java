@@ -2,9 +2,12 @@ package com.cleiton.duartee.cliente.escola.gradecurricular.controller;
 
 import com.cleiton.duartee.cliente.escola.gradecurricular.dto.MateriaDTO;
 import com.cleiton.duartee.cliente.escola.gradecurricular.entity.MateriaEntity;
+import com.cleiton.duartee.cliente.escola.gradecurricular.model.Response;
 import com.cleiton.duartee.cliente.escola.gradecurricular.service.IMateriaService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.server.mvc.MvcLink;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,24 +20,34 @@ import java.util.stream.Collectors;
 @RequestMapping("/materia")
 public class MateriaController {
 
+    private static final String DELETE = "DELETE";
+
+    private static final String UPDATE = "UPDATE";
+
     static final ModelMapper mapper = new ModelMapper();
 
     @Autowired
     private IMateriaService iMateriaService;
 
     @GetMapping
-    public ResponseEntity<List<MateriaDTO>> buscarTodos(){
-        List<MateriaEntity> listMateriaEntity =  this.iMateriaService.buscarTodos();
-        List<MateriaDTO> listMateriaDto = listMateriaEntity.stream().map(
-                (materiaEntity -> mapper.map(materiaEntity, MateriaDTO.class))
-        ).collect(Collectors.toList());
-        return  ResponseEntity.status(HttpStatus.OK).body(listMateriaDto);
+    public ResponseEntity<Response<List<MateriaDTO>>> buscarTodos(){
+        List<MateriaDTO> listMateriaDto = this.iMateriaService.buscarTodos();
+        Response<List<MateriaDTO>> response = new Response<>();
+        response.setStatus(HttpStatus.OK.value());
+        response.setData(listMateriaDto);
+        response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).buscarTodos()).withSelfRel());
+        return  ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MateriaDTO> buscarPorId(@PathVariable long id){
-        MateriaDTO materiaDTO = mapper.map(this.iMateriaService.buscarPorId(id), MateriaDTO.class);
-        return ResponseEntity.status(HttpStatus.OK).body(materiaDTO);
+    public ResponseEntity<Response<MateriaDTO>> buscarPorId(@PathVariable long id){
+        Response<MateriaDTO> response = new Response<>();
+        response.setData(mapper.map(this.iMateriaService.buscarPorId(id), MateriaDTO.class));
+        response.setStatus(HttpStatus.OK.value());
+        response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).buscarPorId(id)).withSelfRel());
+        response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).deletar(id)).withRel(DELETE));
+        response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).atualizar(response.getData())).withRel(UPDATE));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping
