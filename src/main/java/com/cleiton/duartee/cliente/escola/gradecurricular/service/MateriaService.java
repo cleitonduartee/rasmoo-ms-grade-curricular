@@ -37,12 +37,12 @@ public class MateriaService implements IMateriaService{
     }
 
     @Override
-    public Boolean atualizar(MateriaDTO materiaDTO) {
+    public MateriaDTO atualizar(MateriaDTO materiaDTO) {
         try{
             this.buscarPorId(materiaDTO.getId());
             MateriaEntity materiaEntityAtualizada = mapper.map(materiaDTO, MateriaEntity.class);
-            this.materiaRepository.save(materiaEntityAtualizada);
-            return true;
+            materiaDTO = mapper.map(this.materiaRepository.save(materiaEntityAtualizada), MateriaDTO.class);
+            return materiaDTO;
         }catch (MateriaException m){
             throw m;
         }catch (Exception e){
@@ -51,11 +51,10 @@ public class MateriaService implements IMateriaService{
     }
 
     @Override
-    public Boolean excluir(Long id) {
+    public void excluir(Long id) {
         try{
             this.buscarPorId(id);
             this.materiaRepository.deleteById(id);
-            return true;
         }catch (MateriaException m){
             throw m;
         }catch (Exception e){
@@ -65,11 +64,10 @@ public class MateriaService implements IMateriaService{
     }
 
     @Override
-    public Boolean cadastrar(MateriaDTO materiaDTO) {
+    public MateriaDTO cadastrar(MateriaDTO materiaDTO) {
         try{
             MateriaEntity materiaEntity = mapper.map(materiaDTO,MateriaEntity.class);
-            this.materiaRepository.save(materiaEntity);
-            return true;
+            return mapper.map(this.materiaRepository.save(materiaEntity), MateriaDTO.class);
         }catch (Exception e){
             throw new MateriaException(MENSAGEM_ERRO, HttpStatus.INTERNAL_SERVER_ERROR);
         }

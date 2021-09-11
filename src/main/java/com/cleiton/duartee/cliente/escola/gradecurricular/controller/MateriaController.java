@@ -22,6 +22,8 @@ public class MateriaController {
 
     private static final String DELETE = "DELETE";
 
+    private static final String CONSULTAR = "CONSULTAR";
+
     private static final String UPDATE = "UPDATE";
 
     static final ModelMapper mapper = new ModelMapper();
@@ -51,24 +53,45 @@ public class MateriaController {
     }
 
     @PostMapping
-    public ResponseEntity<Boolean> cadastrar(@RequestBody @Valid MateriaDTO materiaDTO){
+    public ResponseEntity<Response<MateriaDTO>> cadastrar(@RequestBody @Valid MateriaDTO materiaDTO){
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(iMateriaService.cadastrar(materiaDTO));
+            materiaDTO = iMateriaService.cadastrar(materiaDTO);
+            Response<MateriaDTO> response = new Response<>();
+            response.setData(materiaDTO);
+            response.setStatus(HttpStatus.OK.value());
+            response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).buscarPorId(materiaDTO.getId())).withRel(CONSULTAR));
+            response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).deletar(materiaDTO.getId())).withRel(DELETE));
+            response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).atualizar(materiaDTO)).withRel(UPDATE));
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Boolean> deletar (@PathVariable Long id){
-        if(this.iMateriaService.excluir(id).equals(true)) return ResponseEntity.status(HttpStatus.NO_CONTENT).body(true);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+    public ResponseEntity<Void> deletar (@PathVariable Long id){
+        try{
+            this.iMateriaService.excluir(id);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @PutMapping()
-    public ResponseEntity<Boolean> atualizar (@RequestBody @Valid MateriaDTO materiaDTO){
-        if(this.iMateriaService.atualizar(materiaDTO).equals(true)) return ResponseEntity.status(HttpStatus.OK).body(true);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+    public ResponseEntity<Response<MateriaDTO>> atualizar (@RequestBody @Valid MateriaDTO materiaDTO){
+        try{
+            materiaDTO = this.iMateriaService.atualizar(materiaDTO);
+            Response<MateriaDTO> response = new Response<>();
+            response.setData(materiaDTO);
+            response.setStatus(HttpStatus.OK.value());
+            response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).atualizar(materiaDTO)).withSelfRel());
+            response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).deletar(materiaDTO.getId())).withRel(DELETE));
+            response.add(WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(MateriaController.class).buscarPorId(materiaDTO.getId())).withRel(CONSULTAR));
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 }
